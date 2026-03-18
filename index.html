@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https: data: blob:;">
 <title>Filete — Tu nube</title>
 <link rel="icon" type="image/png" href="https://i.imgur.com/4FdpwXK.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -920,7 +921,7 @@
     const f = files.find(x => x.id === id);
     if (!f) return;
     document.getElementById('preview-file-name').textContent = f.name + ' · ' + formatSize(f.size);
-    const src = `https://ucarecdn.com/${f.id}/${f.name}`;
+    const src = `https://ucarecdn.com/${f.id}/`;
     let content = '';
     if (f.type.startsWith('image/')) {
       document.getElementById('preview-modal-title').innerHTML = ic('i-image',17,'currentColor','1.8') + '&nbsp; IMAGEN';
@@ -947,7 +948,7 @@
     const f = files.find(x => x.id === id);
     if (!f) return;
     const a = document.createElement('a');
-    a.href = `https://ucarecdn.com/${f.id}/${f.name}`;
+    a.href = `https://ucarecdn.com/${f.id}/`;
     a.download = f.name;
     a.target = '_blank';
     a.click();
