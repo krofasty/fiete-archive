@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https: data: blob:;">
 <title>Filete — Archivo compartido</title>
 <link rel="icon" type="image/png" href="https://i.imgur.com/4FdpwXK.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -305,7 +304,7 @@
     const name = decodeURIComponent(params.get('name') || 'archivo');
     const size = params.get('size') || '0';
     const type = decodeURIComponent(params.get('type') || guessMime(name));
-    const fileUrl = `https://ucarecdn.com/${shareId}/`;
+    const fileUrl = decodeURIComponent(params.get('url') || '') || `https://ucarecdn.com/${shareId}/`;
 
     let previewHtml = '';
 
