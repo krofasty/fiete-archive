@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filete — Archivo compartido</title>
+<link rel="icon" type="image/png" href="https://i.imgur.com/4FdpwXK.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --card: #1c1c1c;
+    --border: #2a2a2a;
+    --border-light: #333;
+    --accent: #e8ff47;
+    --accent-dim: #c9de2e;
+    --text: #f0f0f0;
+    --text-muted: #777;
+    --text-dim: #444;
+    --red: #ff4444;
+    --green: #44ff88;
+    --blue: #44aaff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.5;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .logo { display: flex; align-items: center; gap: 14px; }
+
+  .logo-img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(232,255,71,0.5));
+  }
+
+  .logo-text-wrap { display: flex; flex-direction: column; }
+
+  .logo-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 5px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .logo-sub {
+    color: var(--text-muted);
+    font-size: 0.64rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2.5px;
+    margin-top: 3px;
+  }
+
+  .go-app {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 9px 16px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .go-app:hover { color: var(--text); border-color: var(--border-light); }
+
+  .content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 40px 36px;
+    max-width: 580px;
+    width: 100%;
+    text-align: center;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .file-preview {
+    margin-bottom: 24px;
+  }
+
+  .file-preview img {
+    max-width: 100%;
+    max-height: 340px;
+    border-radius: 10px;
+    object-fit: contain;
+    background: #000;
+  }
+
+  .file-preview video {
+    width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    background: #000;
+  }
+
+  .audio-wrap {
+    background: linear-gradient(135deg, #1a1a1a, #222);
+    border-radius: 10px;
+    padding: 28px 20px;
+  }
+
+  .audio-wrap audio {
+    width: 100%;
+    margin-top: 16px;
+  }
+
+  .file-icon-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 8px;
+    color: var(--text-muted);
+    opacity: 0.5;
+  }
+
+  .file-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.7rem;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-bottom: 6px;
+    word-break: break-all;
+    line-height: 1.2;
+  }
+
+  .file-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-bottom: 30px;
+  }
+
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 36px;
+    background: var(--accent);
+    color: #000;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 0.84rem;
+    letter-spacing: 1px;
+    text-decoration: none;
+    transition: all 0.15s;
+    margin-bottom: 20px;
+  }
+
+  .download-btn:hover {
+    background: var(--accent-dim);
+    transform: translateY(-1px);
+  }
+
+  .powered {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .powered a {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .powered a:hover { color: var(--accent); }
+
+  .error-state {
+    text-align: center;
+    padding: 40px;
+  }
+
+  .error-state .e-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    color: var(--red);
+    margin-bottom: 10px;
+  }
+
+  .error-state p {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+  }
+</style>
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></symbol>
+  <symbol id="i-folder"    viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
+  <symbol id="i-code"      viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol>
+  <symbol id="i-archive"   viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></symbol>
+  <symbol id="i-sheet"     viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></symbol>
+  <symbol id="i-music"     viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  <symbol id="i-file"      viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></symbol>
+  <symbol id="i-home"      viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+</svg>
+
+<header>
+  <div class="logo">
+    <img src="https://i.imgur.com/4FdpwXK.png" class="logo-img" alt="Filete logo">
+    <div class="logo-text-wrap">
+      <span class="logo-name">Filete</span>
+      <span class="logo-sub">ALMACENAMIENTO EN NUBE</span>
+    </div>
+  </div>
+  <a href="index.html" class="go-app">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-home"/></svg>
+    Ir a la app
+  </a>
+</header>
+
+<div class="content">
+  <div class="card" id="card">
+    <div class="error-state">
+      <div class="e-title">Sin archivo</div>
+      <p>Este link no tiene ningún archivo asociado.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function ic(id, size, stroke = 'currentColor', sw = '1.5') {
+    return `<svg width="${size}" height="${size}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"><use href="#${id}"/></svg>`;
+  }
+
+  function getIconId(type, name) {
+    const ext = (name || '').split('.').pop().toLowerCase();
+    if (type.startsWith('image/')) return 'i-file';
+    if (type.startsWith('video/')) return 'i-file';
+    if (type.startsWith('audio/')) return 'i-music';
+    if (['doc','docx','txt','md','ppt','pptx','pdf'].includes(ext)) return 'i-file-text';
+    if (['xls','xlsx','csv'].includes(ext)) return 'i-sheet';
+    if (['zip','rar','7z','tar','gz'].includes(ext)) return 'i-archive';
+    if (['js','ts','html','css','json','lua','py','rb','cpp','c','java'].includes(ext)) return 'i-code';
+    return 'i-file';
+  }
+
+  function formatSize(b) {
+    b = parseInt(b) || 0;
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    if (b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
+    return (b/1073741824).toFixed(2) + ' GB';
+  }
+
+  function guessMime(name) {
+    const ext = (name || '').split('.').pop().toLowerCase();
+    const map = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp', mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime', mp3:'audio/mpeg', wav:'audio/wav', ogg:'audio/ogg' };
+    return map[ext] || '';
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const shareId = params.get('share');
+
+  if (shareId) {
+    const name = decodeURIComponent(params.get('name') || 'archivo');
+    const size = params.get('size') || '0';
+    const type = decodeURIComponent(params.get('type') || guessMime(name));
+    const fileUrl = `https://ucarecdn.com/${shareId}/${encodeURIComponent(name)}`;
+
+    let previewHtml = '';
+
+    if (type.startsWith('image/')) {
+      previewHtml = `
+        <div class="file-preview">
+          <img src="${fileUrl}" alt="${name}" onerror="this.style.display='none'">
+        </div>`;
+    } else if (type.startsWith('video/')) {
+      previewHtml = `
+        <div class="file-preview">
+          <video src="${fileUrl}" controls></video>
+        </div>`;
+    } else if (type.startsWith('audio/')) {
+      previewHtml = `
+        <div class="file-preview">
+          <div class="audio-wrap">
+            <div style="display:flex;justify-content:center;color:var(--text-muted)">${ic('i-music', 48)}</div>
+            <audio src="${fileUrl}" controls></audio>
+          </div>
+        </div>`;
+    } else {
+      previewHtml = `
+        <div class="file-icon-wrap">
+          ${ic(getIconId(type, name), 72)}
+        </div>`;
+    }
+
+    document.getElementById('card').innerHTML = `
+      ${previewHtml}
+      <div class="file-name">${name}</div>
+      <div class="file-meta">${formatSize(size)}${type ? ' · ' + type : ''}</div>
+      <a href="${fileUrl}" download="${name}" target="_blank" class="download-btn">
+        ${ic('i-download', 16, '#000', '2')}
+        DESCARGAR ARCHIVO
+      </a>
+      <div class="powered">Compartido con <a href="index.html">Filete</a></div>
+    `;
+
+    // Update page title
+    document.title = `${name} — Filete`;
+  }
+</script>
+</body>
+</html>
