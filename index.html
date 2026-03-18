@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filete — Tu nube</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --card: #1c1c1c;
+    --border: #2a2a2a;
+    --border-light: #333;
+    --accent: #e8ff47;
+    --accent-dim: #c9de2e;
+    --text: #f0f0f0;
+    --text-muted: #777;
+    --text-dim: #444;
+    --red: #ff4444;
+    --green: #44ff88;
+    --blue: #44aaff;
+    --orange: #ff9944;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.5;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 4px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .logo span {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-family: 'Space Mono', monospace;
+    display: block;
+    letter-spacing: 2px;
+    margin-top: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .storage-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .storage-bar {
+    width: 120px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .storage-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  /* ─── LAYOUT ─── */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: calc(100vh - 61px);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    padding: 24px 0;
+  }
+
+  .sidebar-section {
+    padding: 0 20px 24px;
+  }
+
+  .sidebar-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    font-weight: 400;
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover {
+    color: var(--text);
+    background: var(--card);
+  }
+
+  .nav-item.active {
+    color: var(--accent);
+    background: rgba(232, 255, 71, 0.07);
+    border-color: rgba(232, 255, 71, 0.15);
+  }
+
+  .nav-item .icon { font-size: 1rem; width: 18px; text-align: center; }
+
+  .nav-item .badge {
+    margin-left: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    background: var(--border);
+    color: var(--text-muted);
+    padding: 2px 6px;
+    border-radius: 10px;
+  }
+
+  .upload-btn {
+    width: 100%;
+    padding: 11px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .upload-btn:hover {
+    background: var(--accent-dim);
+    transform: translateY(-1px);
+  }
+
+  .upload-btn:active { transform: translateY(0); }
+
+  /* ─── MAIN ─── */
+  .main {
+    padding: 28px 32px;
+    overflow-y: auto;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .toolbar-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-right: auto;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    transition: border-color 0.15s;
+  }
+
+  .search-box:focus-within { border-color: var(--accent); }
+
+  .search-box input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    width: 200px;
+  }
+
+  .search-box input::placeholder { color: var(--text-dim); }
+
+  .search-box .s-icon { color: var(--text-dim); font-size: 0.9rem; }
+
+  .view-toggle {
+    display: flex;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .view-btn {
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+
+  .view-btn.active { background: var(--border); color: var(--text); }
+
+  /* ─── DROP ZONE ─── */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    margin-bottom: 28px;
+    transition: all 0.2s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .drop-zone.dragging {
+    border-color: var(--accent);
+    background: rgba(232, 255, 71, 0.04);
+  }
+
+  .drop-zone.dragging .drop-icon { color: var(--accent); transform: scale(1.1); }
+
+  .drop-icon {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    transition: transform 0.2s;
+    display: block;
+  }
+
+  .drop-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .drop-text strong { color: var(--text); }
+
+  #file-input { display: none; }
+
+  /* ─── FILE GRID ─── */
+  .files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+  }
+
+  .files-list-view .files-grid {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .file-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    animation: fadeIn 0.25s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .file-card:hover {
+    border-color: var(--border-light);
+    background: #222;
+    transform: translateY(-2px);
+  }
+
+  .file-card.selected {
+    border-color: var(--accent);
+    background: rgba(232, 255, 71, 0.06);
+  }
+
+  .file-icon {
+    font-size: 2.2rem;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .file-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 4px;
+  }
+
+  .file-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+  }
+
+  .file-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: none;
+    gap: 4px;
+  }
+
+  .file-card:hover .file-actions { display: flex; }
+
+  .fa-btn {
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    color: var(--text-muted);
+  }
+
+  .fa-btn:hover.del { border-color: var(--red); color: var(--red); background: rgba(255,68,68,0.1); }
+  .fa-btn:hover.share { border-color: var(--blue); color: var(--blue); background: rgba(68,170,255,0.1); }
+  .fa-btn:hover.dl { border-color: var(--green); color: var(--green); background: rgba(68,255,136,0.1); }
+
+  /* List view card */
+  .files-list-view .file-card {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    gap: 14px;
+  }
+
+  .files-list-view .file-icon {
+    font-size: 1.4rem;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .files-list-view .file-name {
+    flex: 1;
+    font-size: 0.88rem;
+  }
+
+  .files-list-view .file-meta {
+    margin: 0;
+    min-width: 120px;
+    text-align: right;
+  }
+
+  .files-list-view .file-actions {
+    position: static;
+    display: flex;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .files-list-view .file-card:hover .file-actions { opacity: 1; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--text-dim);
+  }
+
+  .empty-state .e-icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.3; }
+  .empty-state p { font-size: 0.9rem; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeOverlay 0.2s ease;
+  }
+
+  @keyframes fadeOverlay {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-overlay.hidden { display: none; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 28px;
+    min-width: 380px;
+    max-width: 480px;
+    width: 90%;
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+
+  .share-url {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .share-url input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    outline: none;
+  }
+
+  .copy-btn {
+    padding: 10px 16px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover { background: var(--accent-dim); }
+  .copy-btn.copied { background: var(--green); color: #000; }
+
+  .modal-close {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+
+  .modal-close:hover { border-color: var(--border-light); color: var(--text); }
+
+  .share-info {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--card);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    color: var(--text);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+  }
+
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .toast .t-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .toast.error .t-dot { background: var(--red); }
+  .toast.success .t-dot { background: var(--green); }
+
+  /* ─── CONFIRM DIALOG ─── */
+  .confirm-modal .modal-title { color: var(--red); }
+
+  .confirm-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-danger {
+    flex: 1;
+    padding: 10px;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-danger:hover { background: #cc3333; }
+
+  .btn-cancel {
+    flex: 1;
+    padding: 10px;
+    background: none;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-cancel:hover { border-color: var(--border-light); color: var(--text); }
+
+  /* ─── PROGRESS ─── */
+  .upload-progress {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    animation: fadeIn 0.2s;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.1s linear;
+  }
+
+  #progress-area { margin-bottom: 0; }
+  #progress-area:empty { display: none; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    Filete
+    <span>ALMACENAMIENTO EN NUBE</span>
+  </div>
+  <div class="header-right">
+    <div class="storage-bar-wrap">
+      <span id="storage-label">0 B / 500 MB</span>
+      <div class="storage-bar">
+        <div class="storage-fill" id="storage-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+        ＋ SUBIR ARCHIVO
+      </button>
+      <input type="file" id="file-input" multiple>
+
+      <div class="sidebar-label">Navegación</div>
+      <div class="nav-item active" onclick="setView('all', this)">
+        <span class="icon">📁</span> Todos los archivos
+        <span class="badge" id="badge-all">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('images', this)">
+        <span class="icon">🖼</span> Imágenes
+        <span class="badge" id="badge-images">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('docs', this)">
+        <span class="icon">📄</span> Documentos
+        <span class="badge" id="badge-docs">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('videos', this)">
+        <span class="icon">🎬</span> Videos
+        <span class="badge" id="badge-videos">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('audio', this)">
+        <span class="icon">🎵</span> Audio
+        <span class="badge" id="badge-audio">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('other', this)">
+        <span class="icon">📦</span> Otros
+        <span class="badge" id="badge-other">0</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section" style="border-top:1px solid var(--border); padding-top:20px;">
+      <div class="sidebar-label">Recientes</div>
+      <div id="recent-list" style="font-size:0.78rem; color:var(--text-muted);">
+        <div style="color:var(--text-dim); font-size:0.75rem;">Sin archivos aún</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main-area">
+    <div class="toolbar">
+      <div class="toolbar-title" id="section-title">TODOS LOS ARCHIVOS</div>
+      <div class="search-box">
+        <span class="s-icon">🔍</span>
+        <input type="text" placeholder="Buscar archivos..." id="search-input" oninput="renderFiles()">
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="grid-btn" onclick="toggleView('grid')">⊞</button>
+        <button class="view-btn" id="list-btn" onclick="toggleView('list')">☰</button>
+      </div>
+    </div>
+
+    <!-- Drop zone -->
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <span class="drop-icon">⬆</span>
+      <div class="drop-text">
+        <strong>Arrastra archivos aquí</strong> o haz clic para explorar<br>
+        <span style="font-size:0.78rem; color:var(--text-dim);">Soporta cualquier tipo de archivo</span>
+      </div>
+    </div>
+
+    <!-- Upload progress -->
+    <div id="progress-area"></div>
+
+    <!-- Files -->
+    <div id="files-container" class="files-grid"></div>
+  </main>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay hidden" id="share-modal">
+  <div class="modal">
+    <div class="modal-title">🔗 COMPARTIR ARCHIVO</div>
+    <p class="share-info" id="share-filename">Genera un enlace público para compartir este archivo con cualquier persona.</p>
+    <div class="share-url">
+      <input type="text" id="share-url-input" readonly>
+      <button class="copy-btn" id="copy-btn" onclick="copyShareUrl()">COPIAR</button>
+    </div>
+    <button class="modal-close" onclick="closeModal('share-modal')">Cerrar</button>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay hidden" id="delete-modal">
+  <div class="modal confirm-modal">
+    <div class="modal-title">⚠ ELIMINAR ARCHIVO</div>
+    <p class="share-info" id="delete-filename">Esta acción no se puede deshacer. ¿Deseas continuar?</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeModal('delete-modal')">Cancelar</button>
+      <button class="btn-danger" onclick="confirmDelete()">ELIMINAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="t-dot"></div>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+  // ─── STATE ───
+  let files = JSON.parse(localStorage.getItem('filete_files') || '[]');
+  let currentView = 'all';
+  let displayMode = 'grid';
+  let pendingDelete = null;
+  const MAX_STORAGE = 500 * 1024 * 1024; // 500 MB (visual only)
+
+  // ─── FILE TYPE HELPERS ───
+  function getIcon(type, name) {
+    const ext = name.split('.').pop().toLowerCase();
+    if (type.startsWith('image/')) return '🖼';
+    if (type.startsWith('video/')) return '🎬';
+    if (type.startsWith('audio/')) return '🎵';
+    if (type === 'application/pdf') return '📕';
+    if (['doc','docx'].includes(ext)) return '📝';
+    if (['xls','xlsx','csv'].includes(ext)) return '📊';
+    if (['ppt','pptx'].includes(ext)) return '📑';
+    if (['zip','rar','7z','tar','gz'].includes(ext)) return '📦';
+    if (['js','ts','html','css','json','lua','py','rb','cpp','c','java'].includes(ext)) return '💻';
+    if (['txt','md'].includes(ext)) return '📄';
+    return '📁';
+  }
+
+  function getCategory(type, name) {
+    if (type.startsWith('image/')) return 'images';
+    if (type.startsWith('video/')) return 'videos';
+    if (type.startsWith('audio/')) return 'audio';
+    const ext = name.split('.').pop().toLowerCase();
+    if (['pdf','doc','docx','xls','xlsx','csv','ppt','pptx','txt','md'].includes(ext)) return 'docs';
+    if (['js','ts','html','css','json','lua','py','rb','cpp','c','java'].includes(ext)) return 'docs';
+    return 'other';
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024*1024)).toFixed(1) + ' MB';
+    return (bytes / (1024*1024*1024)).toFixed(2) + ' GB';
+  }
+
+  function formatDate(ts) {
+    const d = new Date(ts);
+    return d.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function totalSize() {
+    return files.reduce((sum, f) => sum + (f.size || 0), 0);
+  }
+
+  // ─── STORAGE BAR ───
+  function updateStorageBar() {
+    const used = totalSize();
+    const pct = Math.min((used / MAX_STORAGE) * 100, 100).toFixed(1);
+    document.getElementById('storage-fill').style.width = pct + '%';
+    document.getElementById('storage-label').textContent = formatSize(used) + ' / 500 MB';
+  }
+
+  // ─── BADGES ───
+  function updateBadges() {
+    const counts = { all: 0, images: 0, docs: 0, videos: 0, audio: 0, other: 0 };
+    files.forEach(f => {
+      counts.all++;
+      counts[getCategory(f.type, f.name)]++;
+    });
+    Object.entries(counts).forEach(([k, v]) => {
+      const el = document.getElementById('badge-' + k);
+      if (el) el.textContent = v;
+    });
+  }
+
+  // ─── RECENT LIST ───
+  function updateRecent() {
+    const container = document.getElementById('recent-list');
+    const recent = [...files].sort((a,b) => b.uploadedAt - a.uploadedAt).slice(0, 4);
+    if (!recent.length) {
+      container.innerHTML = '<div style="color:var(--text-dim);font-size:0.75rem;">Sin archivos aún</div>';
+      return;
+    }
+    container.innerHTML = recent.map(f => `
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+        <span>${getIcon(f.type, f.name)}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.75rem;">${f.name}</span>
+      </div>
+    `).join('');
+  }
+
+  // ─── RENDER FILES ───
+  function renderFiles() {
+    const container = document.getElementById('files-container');
+    const query = document.getElementById('search-input').value.toLowerCase();
+
+    let filtered = files.filter(f => {
+      const catOk = currentView === 'all' || getCategory(f.type, f.name) === currentView;
+      const searchOk = !query || f.name.toLowerCase().includes(query);
+      return catOk && searchOk;
+    });
+
+    if (!filtered.length) {
+      container.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;">
+          <div class="e-icon">🗂</div>
+          <p>${query ? 'No se encontraron archivos para "' + query + '"' : 'Esta carpeta está vacía'}</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map(f => `
+      <div class="file-card" onclick="toggleSelect('${f.id}')" id="card-${f.id}">
+        <span class="file-icon">${getIcon(f.type, f.name)}</span>
+        <div class="file-name" title="${f.name}">${f.name}</div>
+        <div class="file-meta">${formatSize(f.size)} · ${formatDate(f.uploadedAt)}</div>
+        <div class="file-actions">
+          <button class="fa-btn dl" title="Descargar" onclick="downloadFile(event, '${f.id}')">⬇</button>
+          <button class="fa-btn share" title="Compartir" onclick="shareFile(event, '${f.id}')">🔗</button>
+          <button class="fa-btn del" title="Eliminar" onclick="deleteFile(event, '${f.id}')">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleSelect(id) {
+    const card = document.getElementById('card-' + id);
+    if (card) card.classList.toggle('selected');
+  }
+
+  // ─── UPLOAD ───
+  function handleFiles(fileList) {
+    const progressArea = document.getElementById('progress-area');
+    Array.from(fileList).forEach(file => {
+      const id = 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+
+      // Create progress bar
+      const pEl = document.createElement('div');
+      pEl.className = 'upload-progress';
+      pEl.innerHTML = `
+        <div class="progress-header">
+          <span>${file.name}</span>
+          <span id="pct-${id}">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="bar-${id}" style="width:0%"></div></div>
+      `;
+      progressArea.appendChild(pEl);
+
+      // Simulate progress while reading
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress = Math.min(progress + Math.random() * 18, 90);
+        const bar = document.getElementById('bar-' + id);
+        const pct = document.getElementById('pct-' + id);
+        if (bar) bar.style.width = progress + '%';
+        if (pct) pct.textContent = Math.round(progress) + '%';
+      }, 80);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        clearInterval(interval);
+        const bar = document.getElementById('bar-' + id);
+        const pct = document.getElementById('pct-' + id);
+        if (bar) bar.style.width = '100%';
+        if (pct) pct.textContent = '100%';
+
+        const fileObj = {
+          id,
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          size: file.size,
+          uploadedAt: Date.now(),
+          data: e.target.result
+        };
+
+        files.unshift(fileObj);
+        saveFiles();
+        updateBadges();
+        updateRecent();
+        updateStorageBar();
+        renderFiles();
+
+        setTimeout(() => { if (pEl.parentNode) pEl.remove(); }, 1200);
+        showToast('✓ ' + file.name + ' subido', 'success');
+      };
+
+      reader.onerror = () => {
+        clearInterval(interval);
+        if (pEl.parentNode) pEl.remove();
+        showToast('Error al subir ' + file.name, 'error');
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ─── DOWNLOAD ───
+  function downloadFile(e, id) {
+    e.stopPropagation();
+    const f = files.find(x => x.id === id);
+    if (!f) return;
+    const a = document.createElement('a');
+    a.href = f.data;
+    a.download = f.name;
+    a.click();
+    showToast('Descargando ' + f.name);
+  }
+
+  // ─── SHARE ───
+  function shareFile(e, id) {
+    e.stopPropagation();
+    const f = files.find(x => x.id === id);
+    if (!f) return;
+
+    // Generate a fake but realistic share URL using the file id
+    const fakeUrl = `https://filete.app/s/${btoa(id).replace(/=/g,'')}`;
+    document.getElementById('share-url-input').value = fakeUrl;
+    document.getElementById('share-filename').textContent = `📎 ${f.name} · ${formatSize(f.size)}`;
+    document.getElementById('copy-btn').textContent = 'COPIAR';
+    document.getElementById('copy-btn').classList.remove('copied');
+
+    document.getElementById('share-modal').classList.remove('hidden');
+  }
+
+  function copyShareUrl() {
+    const input = document.getElementById('share-url-input');
+    navigator.clipboard.writeText(input.value).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✓ COPIADO';
+      btn.classList.add('copied');
+      showToast('Enlace copiado al portapapeles', 'success');
+    });
+  }
+
+  // ─── DELETE ───
+  function deleteFile(e, id) {
+    e.stopPropagation();
+    const f = files.find(x => x.id === id);
+    if (!f) return;
+    pendingDelete = id;
+    document.getElementById('delete-filename').textContent = `¿Eliminar "${f.name}"? Esta acción no se puede deshacer.`;
+    document.getElementById('delete-modal').classList.remove('hidden');
+  }
+
+  function confirmDelete() {
+    if (!pendingDelete) return;
+    const f = files.find(x => x.id === pendingDelete);
+    files = files.filter(x => x.id !== pendingDelete);
+    pendingDelete = null;
+    saveFiles();
+    updateBadges();
+    updateRecent();
+    updateStorageBar();
+    renderFiles();
+    closeModal('delete-modal');
+    showToast('Archivo eliminado', 'error');
+  }
+
+  // ─── MODALS ───
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.add('hidden'); });
+  });
+
+  // ─── TOAST ───
+  let toastTimer;
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    const m = document.getElementById('toast-msg');
+    t.className = 'toast' + (type ? ' ' + type : '');
+    m.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ─── VIEW SWITCH ───
+  function setView(view, el) {
+    currentView = view;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const titles = { all:'TODOS LOS ARCHIVOS', images:'IMÁGENES', docs:'DOCUMENTOS', videos:'VIDEOS', audio:'AUDIO', other:'OTROS' };
+    document.getElementById('section-title').textContent = titles[view] || 'ARCHIVOS';
+    renderFiles();
+  }
+
+  function toggleView(mode) {
+    displayMode = mode;
+    const container = document.getElementById('files-container');
+    const main = document.getElementById('main-area');
+    if (mode === 'list') {
+      container.className = 'files-grid';
+      main.classList.add('files-list-view');
+      document.getElementById('grid-btn').classList.remove('active');
+      document.getElementById('list-btn').classList.add('active');
+    } else {
+      container.className = 'files-grid';
+      main.classList.remove('files-list-view');
+      document.getElementById('grid-btn').classList.add('active');
+      document.getElementById('list-btn').classList.remove('active');
+    }
+    renderFiles();
+  }
+
+  // ─── DRAG AND DROP ───
+  const dropZone = document.getElementById('drop-zone');
+
+  ['dragenter','dragover'].forEach(ev => {
+    dropZone.addEventListener(ev, e => {
+      e.preventDefault();
+      dropZone.classList.add('dragging');
+    });
+  });
+
+  ['dragleave','drop'].forEach(ev => {
+    dropZone.addEventListener(ev, e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragging');
+    });
+  });
+
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragging');
+    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+  });
+
+  document.getElementById('file-input').addEventListener('change', function() {
+    if (this.files.length) { handleFiles(this.files); this.value = ''; }
+  });
+
+  // ─── PERSIST ───
+  function saveFiles() {
+    try {
+      localStorage.setItem('filete_files', JSON.stringify(files));
+    } catch(e) {
+      // localStorage might be full with large files
+    }
+  }
+
+  // ─── INIT ───
+  updateBadges();
+  updateRecent();
+  updateStorageBar();
+  renderFiles();
+</script>
+</body>
+</html>
