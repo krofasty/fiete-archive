@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filete — Tu nube</title>
+<link rel="icon" type="image/png" href="https://i.imgur.com/4FdpwXK.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --card: #1c1c1c;
+    --border: #2a2a2a;
+    --border-light: #333;
+    --accent: #e8ff47;
+    --accent-dim: #c9de2e;
+    --text: #f0f0f0;
+    --text-muted: #777;
+    --text-dim: #444;
+    --red: #ff4444;
+    --green: #44ff88;
+    --blue: #44aaff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.5;
+  }
+
+  .ic { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ic svg { display: block; }
+
+  /* ─── HEADER ─── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo { display: flex; align-items: center; gap: 14px; }
+
+  .logo-img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(232,255,71,0.5));
+  }
+
+  .logo-text-wrap { display: flex; flex-direction: column; }
+
+  .logo-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    letter-spacing: 5px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .logo-sub {
+    color: var(--text-muted);
+    font-size: 0.64rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 2.5px;
+    margin-top: 3px;
+  }
+
+  .header-right { display: flex; align-items: center; gap: 16px; }
+
+  .storage-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .storage-bar { width: 120px; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+
+  .storage-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  /* ─── LAYOUT ─── */
+  .layout {
+    display: grid;
+    grid-template-columns: 224px 1fr;
+    min-height: calc(100vh - 83px);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    padding: 24px 0;
+  }
+
+  .sidebar-section { padding: 0 16px 24px; }
+
+  .sidebar-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    padding-left: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 0.86rem;
+    color: var(--text-muted);
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover { color: var(--text); background: var(--card); }
+
+  .nav-item.active {
+    color: var(--accent);
+    background: rgba(232,255,71,0.07);
+    border-color: rgba(232,255,71,0.15);
+  }
+
+  .nav-item .badge {
+    margin-left: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    background: var(--border);
+    color: var(--text-muted);
+    padding: 2px 6px;
+    border-radius: 10px;
+  }
+
+  .upload-btn {
+    width: 100%;
+    padding: 11px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 7px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-bottom: 20px;
+  }
+
+  .upload-btn:hover { background: var(--accent-dim); transform: translateY(-1px); }
+  .upload-btn:active { transform: translateY(0); }
+
+  /* ─── MAIN ─── */
+  .main { padding: 28px 32px; overflow-y: auto; }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .toolbar-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-right: auto;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 14px;
+    transition: border-color 0.15s;
+  }
+
+  .search-box:focus-within { border-color: var(--accent); }
+
+  .search-box input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    width: 200px;
+  }
+
+  .search-box input::placeholder { color: var(--text-dim); }
+
+  .view-toggle {
+    display: flex;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    overflow: hidden;
+  }
+
+  .view-btn {
+    padding: 8px 11px;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+  }
+
+  .view-btn.active { background: var(--border); color: var(--text); }
+
+  /* ─── DROP ZONE ─── */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 36px 40px;
+    text-align: center;
+    margin-bottom: 28px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .drop-zone:hover { border-color: var(--border-light); }
+
+  .drop-zone.dragging {
+    border-color: var(--accent);
+    background: rgba(232,255,71,0.04);
+  }
+
+  .drop-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+    color: var(--text-dim);
+    transition: color 0.2s, transform 0.2s;
+  }
+
+  .drop-zone.dragging .drop-icon { color: var(--accent); transform: translateY(-3px); }
+
+  .drop-text { font-size: 0.9rem; color: var(--text-muted); }
+  .drop-text strong { color: var(--text); }
+  #file-input { display: none; }
+
+  /* ─── FILE GRID ─── */
+  .files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+  }
+
+  .files-list-view .files-grid { grid-template-columns: 1fr; gap: 4px; }
+
+  .file-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    animation: fadeIn 0.25s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .file-card:hover { border-color: var(--border-light); background: #222; transform: translateY(-2px); }
+  .file-card.selected { border-color: var(--accent); background: rgba(232,255,71,0.06); }
+
+  .file-icon { margin-bottom: 10px; display: block; color: var(--text-muted); }
+
+  .file-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 4px;
+  }
+
+  .file-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-dim);
+  }
+
+  .file-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: none;
+    gap: 4px;
+  }
+
+  .file-card:hover .file-actions { display: flex; }
+
+  .fa-btn {
+    width: 27px;
+    height: 27px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    color: var(--text-muted);
+    padding: 0;
+  }
+
+  .fa-btn:hover.del  { border-color: var(--red);   color: var(--red);   background: rgba(255,68,68,0.1); }
+  .fa-btn:hover.share{ border-color: var(--blue);  color: var(--blue);  background: rgba(68,170,255,0.1); }
+  .fa-btn:hover.dl   { border-color: var(--green); color: var(--green); background: rgba(68,255,136,0.1); }
+  .fa-btn:hover.play { border-color: var(--accent);color: var(--accent);background: rgba(232,255,71,0.1); }
+
+  /* List view */
+  .files-list-view .file-card { display: flex; align-items: center; padding: 10px 14px; gap: 14px; }
+  .files-list-view .file-icon { margin: 0; flex-shrink: 0; }
+  .files-list-view .file-name { flex: 1; font-size: 0.88rem; }
+  .files-list-view .file-meta { margin: 0; min-width: 120px; text-align: right; }
+  .files-list-view .file-actions { position: static; display: flex; opacity: 0; transition: opacity 0.15s; }
+  .files-list-view .file-card:hover .file-actions { opacity: 1; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state { text-align: center; padding: 80px 20px; color: var(--text-dim); }
+  .empty-state .e-icon { margin-bottom: 16px; display: flex; justify-content: center; opacity: 0.2; color: var(--text-muted); }
+  .empty-state p { font-size: 0.9rem; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeOverlay 0.2s ease;
+  }
+
+  @keyframes fadeOverlay { from { opacity:0; } to { opacity:1; } }
+  .modal-overlay.hidden { display: none; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 28px;
+    min-width: 380px;
+    max-width: 480px;
+    width: 90%;
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity:0; }
+    to   { transform: translateY(0);    opacity:1; }
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .share-url { display: flex; gap: 8px; margin-bottom: 16px; }
+
+  .share-url input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    outline: none;
+  }
+
+  .copy-btn {
+    padding: 10px 16px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover { background: var(--accent-dim); }
+  .copy-btn.copied { background: var(--green); color: #000; }
+
+  .modal-close {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+
+  .modal-close:hover { border-color: var(--border-light); color: var(--text); }
+
+  .share-info { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+
+  /* ─── PREVIEW MODAL ─── */
+  .preview-modal .modal { min-width: 520px; max-width: 780px; width: 92%; }
+  .preview-media { width: 100%; border-radius: 8px; margin-bottom: 16px; background: #000; display: block; }
+  .preview-media.img { max-height: 460px; object-fit: contain; }
+  .preview-media.vid { max-height: 400px; }
+  .preview-media.aud { height: 48px; }
+  .preview-title { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Space Mono', monospace; }
+
+  .file-thumb { width: 100%; height: 90px; object-fit: cover; border-radius: 5px; margin-bottom: 8px; display: block; background: #000; }
+  .thumb-wrap { position: relative; margin-bottom: 8px; }
+
+  /* ─── CONFIRM ─── */
+  .confirm-modal .modal-title { color: var(--red); }
+
+  .confirm-btns { display: flex; gap: 10px; margin-top: 20px; }
+
+  .btn-danger {
+    flex: 1; padding: 10px;
+    background: var(--red); color: #fff;
+    border: none; border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+  }
+
+  .btn-danger:hover { background: #cc3333; }
+
+  .btn-cancel {
+    flex: 1; padding: 10px;
+    background: none; color: var(--text-muted);
+    border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem; cursor: pointer; transition: all 0.15s;
+  }
+
+  .btn-cancel:hover { border-color: var(--border-light); color: var(--text); }
+
+  /* ─── PROGRESS ─── */
+  .upload-progress {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 16px;
+    margin-bottom: 16px; animation: fadeIn 0.2s;
+  }
+
+  .progress-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-muted); }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.1s linear; }
+  #progress-area:empty { display: none; }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--card); border: 1px solid var(--border-light);
+    border-radius: 8px; padding: 12px 20px;
+    font-size: 0.85rem; color: var(--text);
+    z-index: 2000; display: flex; align-items: center; gap: 10px;
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast .t-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .toast.error .t-dot { background: var(--red); }
+  .toast.success .t-dot { background: var(--green); }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<!-- ─── LUCIDE-STYLE SVG SPRITE ─── -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="i-folder"    viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-image"     viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></symbol>
+  <symbol id="i-video"     viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></symbol>
+  <symbol id="i-music"     viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  <symbol id="i-package"   viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol>
+  <symbol id="i-upload"    viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></symbol>
+  <symbol id="i-search"    viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+  <symbol id="i-grid"      viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+  <symbol id="i-list"      viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="i-download"  viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></symbol>
+  <symbol id="i-link"      viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="i-trash"     viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+  <symbol id="i-play"      viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
+  <symbol id="i-alert"     viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="i-share2"    viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></symbol>
+  <symbol id="i-file"      viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></symbol>
+  <symbol id="i-code"      viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></symbol>
+  <symbol id="i-sheet"     viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></symbol>
+  <symbol id="i-archive"   viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></symbol>
+  <symbol id="i-inbox"     viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+  <symbol id="i-plus"      viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-eye"       viewBox="0 0 24 24" fill="none" stroke-width="2"   stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+</svg>
+
+<header>
+  <div class="logo">
+    <img src="https://i.imgur.com/4FdpwXK.png" class="logo-img" alt="Filete logo">
+    <div class="logo-text-wrap">
+      <span class="logo-name">Filete</span>
+      <span class="logo-sub">ALMACENAMIENTO EN NUBE</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="storage-bar-wrap">
+      <span id="storage-label">0 B / 5 GB</span>
+      <div class="storage-bar">
+        <div class="storage-fill" id="storage-fill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+        <svg width="13" height="13" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-plus"/></svg>
+        SUBIR ARCHIVO
+      </button>
+      <input type="file" id="file-input" multiple>
+
+      <div class="sidebar-label">Navegación</div>
+      <div class="nav-item active" onclick="setView('all',this)">
+        <span class="ic"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-folder"/></svg></span>
+        Todos los archivos <span class="badge" id="badge-all">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('images',this)">
+        <span class="ic"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-image"/></svg></span>
+        Imágenes <span class="badge" id="badge-images">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('docs',this)">
+        <span class="ic"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-file-text"/></svg></span>
+        Documentos <span class="badge" id="badge-docs">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('videos',this)">
+        <span class="ic"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-video"/></svg></span>
+        Videos <span class="badge" id="badge-videos">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('audio',this)">
+        <span class="ic"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-music"/></svg></span>
+        Audio <span class="badge" id="badge-audio">0</span>
+      </div>
+      <div class="nav-item" onclick="setView('other',this)">
+        <span class="ic"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-package"/></svg></span>
+        Otros <span class="badge" id="badge-other">0</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section" style="border-top:1px solid var(--border);padding-top:20px;">
+      <div class="sidebar-label">Recientes</div>
+      <div id="recent-list" style="font-size:0.78rem;color:var(--text-muted);">
+        <div style="color:var(--text-dim);font-size:0.75rem;">Sin archivos aún</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main" id="main-area">
+    <div class="toolbar">
+      <div class="toolbar-title" id="section-title">TODOS LOS ARCHIVOS</div>
+      <div class="search-box">
+        <span class="ic"><svg width="14" height="14" fill="none" stroke="var(--text-dim)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-search"/></svg></span>
+        <input type="text" placeholder="Buscar archivos..." id="search-input" oninput="renderFiles()">
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="grid-btn" onclick="toggleView('grid')">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-grid"/></svg>
+        </button>
+        <button class="view-btn" id="list-btn" onclick="toggleView('list')">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-list"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+      <div class="drop-icon">
+        <svg width="38" height="38" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-upload"/></svg>
+      </div>
+      <div class="drop-text">
+        <strong>Arrastra archivos aquí</strong> o haz clic para explorar<br>
+        <span style="font-size:0.78rem;color:var(--text-dim);">Cualquier tipo de archivo · Hasta 5 GB</span>
+      </div>
+    </div>
+
+    <div id="progress-area"></div>
+    <div id="files-container" class="files-grid"></div>
+  </main>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay hidden" id="share-modal">
+  <div class="modal">
+    <div class="modal-title">
+      <svg width="19" height="19" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-share2"/></svg>
+      COMPARTIR ARCHIVO
+    </div>
+    <p class="share-info" id="share-filename">Genera un enlace público para compartir este archivo.</p>
+    <div class="share-url">
+      <input type="text" id="share-url-input" readonly>
+      <button class="copy-btn" id="copy-btn" onclick="copyShareUrl()">COPIAR</button>
+    </div>
+    <button class="modal-close" onclick="closeModal('share-modal')">Cerrar</button>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay hidden" id="delete-modal">
+  <div class="modal confirm-modal">
+    <div class="modal-title">
+      <svg width="19" height="19" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-alert"/></svg>
+      ELIMINAR ARCHIVO
+    </div>
+    <p class="share-info" id="delete-filename">Esta acción no se puede deshacer. ¿Deseas continuar?</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeModal('delete-modal')">Cancelar</button>
+      <button class="btn-danger" onclick="confirmDelete()">ELIMINAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay hidden preview-modal" id="preview-modal">
+  <div class="modal">
+    <div class="modal-title" id="preview-modal-title">VISTA PREVIA</div>
+    <div class="preview-title" id="preview-file-name"></div>
+    <div id="preview-content"></div>
+    <button class="modal-close" onclick="closeModal('preview-modal')">Cerrar</button>
+  </div>
+</div>
+
+<!-- Share Page Overlay -->
+<div id="share-page" class="hidden" style="position:fixed;inset:0;background:var(--bg);z-index:5000;display:flex;flex-direction:column;">
+  <header style="display:flex;align-items:center;justify-content:space-between;padding:14px 32px;border-bottom:1px solid var(--border);background:var(--surface);">
+    <div class="logo">
+      <img src="https://i.imgur.com/4FdpwXK.png" class="logo-img" alt="Filete logo">
+      <div class="logo-text-wrap">
+        <span class="logo-name">Filete</span>
+        <span class="logo-sub">ALMACENAMIENTO EN NUBE</span>
+      </div>
+    </div>
+    <a href="?" style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--text-muted);text-decoration:none;border:1px solid var(--border);padding:8px 14px;border-radius:6px;transition:all 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">
+      Ir a Filete
+    </a>
+  </header>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:32px;">
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:16px;padding:36px;max-width:560px;width:100%;text-align:center;">
+      <div id="sp-preview" style="margin-bottom:24px;"></div>
+      <div id="sp-icon" style="display:none;margin-bottom:20px;color:var(--text-muted);display:flex;justify-content:center;"></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;color:var(--text);margin-bottom:6px;word-break:break-all;" id="sp-name"></div>
+      <div style="font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--text-dim);margin-bottom:28px;" id="sp-meta"></div>
+      <a id="sp-download-btn" href="#" target="_blank"
+        style="display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:var(--accent);color:#000;border-radius:8px;font-family:'Space Mono',monospace;font-weight:700;font-size:0.82rem;letter-spacing:1px;text-decoration:none;transition:all 0.15s;"
+        onmouseover="this.style.background='var(--accent-dim)';this.style.transform='translateY(-1px)'"
+        onmouseout="this.style.background='var(--accent)';this.style.transform='none'">
+        <svg width="15" height="15" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-download"/></svg>
+        DESCARGAR ARCHIVO
+      </a>
+      <div style="margin-top:20px;font-size:0.78rem;color:var(--text-dim);">Compartido con Filete</div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="t-dot"></div>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+  // ─── UPLOADCARE ───
+  const UC_PUBLIC  = '23f4021b07ec9e695685';
+  const UC_SECRET  = 'd1aec98977561bd5824e';
+  const UC_UPLOAD  = 'https://upload.uploadcare.com/base/';
+  const UC_API     = 'https://api.uploadcare.com';
+
+  let files = [];
+  let currentView = 'all';
+  let displayMode = 'grid';
+  let pendingDelete = null;
+  const MAX_STORAGE = 3 * 1024 * 1024 * 1024;
+
+  // helper: inline SVG use
+  function ic(id, size = 14, stroke = 'currentColor', sw = '1.8') {
+    return `<svg width="${size}" height="${size}" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"><use href="#${id}"/></svg>`;
+  }
+
+  function getIconId(type, name) {
+    const ext = name.split('.').pop().toLowerCase();
+    if (type.startsWith('image/')) return 'i-image';
+    if (type.startsWith('video/')) return 'i-video';
+    if (type.startsWith('audio/')) return 'i-music';
+    if (type === 'application/pdf') return 'i-file-text';
+    if (['doc','docx','txt','md','ppt','pptx'].includes(ext)) return 'i-file-text';
+    if (['xls','xlsx','csv'].includes(ext)) return 'i-sheet';
+    if (['zip','rar','7z','tar','gz'].includes(ext)) return 'i-archive';
+    if (['js','ts','html','css','json','lua','py','rb','cpp','c','java'].includes(ext)) return 'i-code';
+    return 'i-file';
+  }
+
+  function getCategory(type, name) {
+    if (type.startsWith('image/')) return 'images';
+    if (type.startsWith('video/')) return 'videos';
+    if (type.startsWith('audio/')) return 'audio';
+    const ext = name.split('.').pop().toLowerCase();
+    if (['pdf','doc','docx','xls','xlsx','csv','ppt','pptx','txt','md','js','ts','html','css','json','lua','py','rb','cpp','c','java'].includes(ext)) return 'docs';
+    return 'other';
+  }
+
+  function formatSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    if (b < 1073741824) return (b/1048576).toFixed(1) + ' MB';
+    return (b/1073741824).toFixed(2) + ' GB';
+  }
+
+  function formatDate(ts) {
+    return new Date(ts).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  function totalSize() { return files.reduce((s,f) => s + (f.size||0), 0); }
+
+  function updateStorageBar() {
+    const used = totalSize();
+    const pct = Math.min((used / MAX_STORAGE) * 100, 100).toFixed(1);
+    document.getElementById('storage-fill').style.width = pct + '%';
+    document.getElementById('storage-label').textContent = formatSize(used) + ' / 3 GB';
+  }
+
+  function updateBadges() {
+    const c = { all:0, images:0, docs:0, videos:0, audio:0, other:0 };
+    files.forEach(f => { c.all++; c[getCategory(f.type, f.name)]++; });
+    Object.entries(c).forEach(([k,v]) => {
+      const el = document.getElementById('badge-' + k);
+      if (el) el.textContent = v;
+    });
+  }
+
+  function updateRecent() {
+    const el = document.getElementById('recent-list');
+    const recent = [...files].sort((a,b) => b.uploadedAt - a.uploadedAt).slice(0,4);
+    if (!recent.length) { el.innerHTML = '<div style="color:var(--text-dim);font-size:0.75rem;">Sin archivos aún</div>'; return; }
+    el.innerHTML = recent.map(f => `
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+        <span class="ic" style="color:var(--text-dim)">${ic(getIconId(f.type, f.name), 13)}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:0.75rem;">${f.name}</span>
+      </div>`).join('');
+  }
+
+  function renderFiles() {
+    const container = document.getElementById('files-container');
+    const query = document.getElementById('search-input').value.toLowerCase();
+
+    const filtered = files.filter(f => {
+      const catOk = currentView === 'all' || getCategory(f.type, f.name) === currentView;
+      const searchOk = !query || f.name.toLowerCase().includes(query);
+      return catOk && searchOk;
+    });
+
+    if (!filtered.length) {
+      container.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;">
+          <div class="e-icon">${ic('i-inbox', 52, 'var(--text-muted)', '1.5')}</div>
+          <p>${query ? 'No se encontraron archivos para "'+query+'"' : 'Esta carpeta está vacía'}</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map(f => {
+      const isImage = f.type.startsWith('image/');
+      const isVideo = f.type.startsWith('video/');
+      const isAudio = f.type.startsWith('audio/');
+      const isMedia = isImage || isVideo || isAudio;
+      const iconId = getIconId(f.type, f.name);
+
+      let thumbHtml = '';
+      if (isImage) {
+        // Uploadcare image CDN with resize
+        const thumb = `https://ucarecdn.com/${f.id}/-/scale_crop/340x180/center/`;
+        thumbHtml = `<div class="thumb-wrap"><img src="${thumb}" class="file-thumb" loading="lazy"></div>`;
+      } else if (isVideo) {
+        thumbHtml = `<div class="thumb-wrap" style="height:80px;background:#111;border-radius:5px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--text-dim);">
+          ${ic('i-video',22,'var(--text-dim)','1.8')}
+          ${ic('i-play',14,'var(--text-dim)','2')}
+        </div>`;
+      } else if (isAudio) {
+        thumbHtml = `<div class="thumb-wrap" style="height:56px;background:linear-gradient(135deg,#1a1a1a,#222);border-radius:5px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:10px;">
+          ${ic('i-music',20,'var(--text-dim)','1.8')}
+          <span style="font-size:0.63rem;color:var(--text-dim);font-family:'Space Mono',monospace;letter-spacing:2px;">AUDIO</span>
+        </div>`;
+      }
+
+      const fileIconHtml = !thumbHtml
+        ? `<div class="file-icon">${ic(iconId, 28, 'var(--text-muted)', '1.8')}</div>`
+        : '';
+
+      const previewBtn = isMedia
+        ? `<button class="fa-btn play" title="Reproducir" onclick="openPreview(event,'${f.id}')">${ic('i-eye',11,'currentColor','2')}</button>`
+        : '';
+
+      return `
+        <div class="file-card" onclick="toggleSelect('${f.id}')" id="card-${f.id}">
+          ${thumbHtml}
+          ${fileIconHtml}
+          <div class="file-name" title="${f.name}">${f.name}</div>
+          <div class="file-meta">${formatSize(f.size)} · ${formatDate(f.uploadedAt)}</div>
+          <div class="file-actions">
+            ${previewBtn}
+            <button class="fa-btn dl"    title="Descargar" onclick="downloadFile(event,'${f.id}')">${ic('i-download',11,'currentColor','2')}</button>
+            <button class="fa-btn share" title="Compartir" onclick="shareFile(event,'${f.id}')">${ic('i-link',11,'currentColor','2')}</button>
+            <button class="fa-btn del"   title="Eliminar"  onclick="deleteFile(event,'${f.id}')">${ic('i-trash',11,'currentColor','2')}</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleSelect(id) {
+    const c = document.getElementById('card-' + id);
+    if (c) c.classList.toggle('selected');
+  }
+
+  // ─── UPLOAD ───
+  function handleFiles(fileList) {
+    const area = document.getElementById('progress-area');
+    Array.from(fileList).forEach(file => {
+      const uid = 'uc_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+
+      const pEl = document.createElement('div');
+      pEl.className = 'upload-progress';
+      pEl.innerHTML = `<div class="progress-header"><span>${file.name}</span><span id="pct-${uid}">0%</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="bar-${uid}" style="width:0%"></div></div>`;
+      area.appendChild(pEl);
+
+      const formData = new FormData();
+      formData.append('UPLOADCARE_PUB_KEY', UC_PUBLIC);
+      formData.append('UPLOADCARE_STORE', '1');
+      formData.append('file', file);
+
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          const bar = document.getElementById('bar-' + uid);
+          const pctEl = document.getElementById('pct-' + uid);
+          if (bar) bar.style.width = pct + '%';
+          if (pctEl) pctEl.textContent = pct + '%';
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status !== 200) {
+          if (pEl.parentNode) pEl.remove();
+          showToast('Error al subir ' + file.name, 'error');
+          return;
+        }
+        const res = JSON.parse(xhr.responseText);
+        const fileObj = {
+          id: res.file,
+          name: file.name,
+          type: file.type || guessMime(file.name),
+          size: file.size,
+          uploadedAt: Date.now(),
+          url: `https://ucarecdn.com/${res.file}/${file.name}`
+        };
+        files.unshift(fileObj);
+        updateBadges(); updateRecent(); updateStorageBar(); renderFiles();
+        setTimeout(() => { if (pEl.parentNode) pEl.remove(); }, 1200);
+        showToast(file.name + ' subido', 'success');
+      };
+
+      xhr.onerror = () => {
+        if (pEl.parentNode) pEl.remove();
+        showToast('Error de red al subir ' + file.name, 'error');
+      };
+
+      xhr.open('POST', UC_UPLOAD);
+      xhr.send(formData);
+    });
+  }
+
+  // ─── PREVIEW ───
+  function openPreview(e, id) {
+    e.stopPropagation();
+    const f = files.find(x => x.id === id);
+    if (!f) return;
+    document.getElementById('preview-file-name').textContent = f.name + ' · ' + formatSize(f.size);
+    const src = `https://ucarecdn.com/${f.id}/${f.name}`;
+    let content = '';
+    if (f.type.startsWith('image/')) {
+      document.getElementById('preview-modal-title').innerHTML = ic('i-image',17,'currentColor','1.8') + '&nbsp; IMAGEN';
+      content = `<img src="${src}" class="preview-media img" alt="${f.name}">`;
+    } else if (f.type.startsWith('video/')) {
+      document.getElementById('preview-modal-title').innerHTML = ic('i-video',17,'currentColor','1.8') + '&nbsp; VIDEO';
+      content = `<video src="${src}" class="preview-media vid" controls autoplay></video>`;
+    } else if (f.type.startsWith('audio/')) {
+      document.getElementById('preview-modal-title').innerHTML = ic('i-music',17,'currentColor','1.8') + '&nbsp; AUDIO';
+      content = `
+        <div style="background:linear-gradient(135deg,#1a1a1a,#222);border-radius:10px;padding:32px 20px 20px;margin-bottom:16px;text-align:center;">
+          <div style="display:flex;justify-content:center;margin-bottom:18px;color:var(--text-muted)">${ic('i-music',52,'var(--text-muted)','1.2')}</div>
+          <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:18px;font-family:'Space Mono',monospace;">${f.name}</div>
+          <audio src="${src}" class="preview-media aud" controls autoplay style="width:100%;"></audio>
+        </div>`;
+    }
+    document.getElementById('preview-content').innerHTML = content;
+    document.getElementById('preview-modal').classList.remove('hidden');
+  }
+
+  // ─── DOWNLOAD ───
+  function downloadFile(e, id) {
+    e.stopPropagation();
+    const f = files.find(x => x.id === id);
+    if (!f) return;
+    const a = document.createElement('a');
+    a.href = `https://ucarecdn.com/${f.id}/${f.name}`;
+    a.download = f.name;
+    a.target = '_blank';
+    a.click();
+    showToast('Descargando ' + f.name);
+  }
+
+  // ─── SHARE ───
+  function shareFile(e, id) {
+    e.stopPropagation();
+    const f = files.find(x => x.id === id);
+    if (!f) return;
+    const base = window.location.href.split('?')[0];
+    const shareUrl = `${base}?share=${f.id}&name=${encodeURIComponent(f.name)}&size=${f.size}&type=${encodeURIComponent(f.type)}`;
+    document.getElementById('share-url-input').value = shareUrl;
+    document.getElementById('share-filename').textContent = f.name + ' · ' + formatSize(f.size);
+    document.getElementById('copy-btn').textContent = 'COPIAR';
+    document.getElementById('copy-btn').classList.remove('copied');
+    document.getElementById('share-modal').classList.remove('hidden');
+  }
+
+  function copyShareUrl() {
+    navigator.clipboard.writeText(document.getElementById('share-url-input').value).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✓ COPIADO'; btn.classList.add('copied');
+      showToast('Enlace copiado', 'success');
+    });
+  }
+
+  // ─── DELETE ───
+  function deleteFile(e, id) {
+    e.stopPropagation();
+    const f = files.find(x => x.id === id);
+    if (!f) return;
+    pendingDelete = id;
+    document.getElementById('delete-filename').textContent = `¿Eliminar "${f.name}"? Esta acción no se puede deshacer.`;
+    document.getElementById('delete-modal').classList.remove('hidden');
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const f = files.find(x => x.id === pendingDelete);
+    if (f) {
+      try {
+        await fetch(`${UC_API}/files/${f.id}/storage/`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Uploadcare.Simple ${UC_PUBLIC}:${UC_SECRET}`,
+            'Accept': 'application/vnd.uploadcare-v0.7+json'
+          }
+        });
+      } catch(err) { /* best effort */ }
+    }
+    files = files.filter(x => x.id !== pendingDelete);
+    pendingDelete = null;
+    updateBadges(); updateRecent(); updateStorageBar(); renderFiles();
+    closeModal('delete-modal');
+    showToast('Archivo eliminado', 'error');
+  }
+
+  // ─── MODALS ───
+  function closeModal(id) {
+    if (id === 'preview-modal') {
+      document.getElementById('preview-content').querySelectorAll('video,audio').forEach(m => { m.pause(); m.src = ''; });
+    }
+    document.getElementById(id).classList.add('hidden');
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+  });
+
+  // ─── TOAST ───
+  let toastTimer;
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.className = 'toast' + (type ? ' ' + type : '');
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ─── VIEWS ───
+  function setView(view, el) {
+    currentView = view;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const titles = { all:'TODOS LOS ARCHIVOS', images:'IMÁGENES', docs:'DOCUMENTOS', videos:'VIDEOS', audio:'AUDIO', other:'OTROS' };
+    document.getElementById('section-title').textContent = titles[view] || 'ARCHIVOS';
+    renderFiles();
+  }
+
+  function toggleView(mode) {
+    displayMode = mode;
+    const main = document.getElementById('main-area');
+    if (mode === 'list') {
+      main.classList.add('files-list-view');
+      document.getElementById('grid-btn').classList.remove('active');
+      document.getElementById('list-btn').classList.add('active');
+    } else {
+      main.classList.remove('files-list-view');
+      document.getElementById('grid-btn').classList.add('active');
+      document.getElementById('list-btn').classList.remove('active');
+    }
+    renderFiles();
+  }
+
+  // ─── DRAG & DROP ───
+  const dz = document.getElementById('drop-zone');
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.add('dragging'); }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.classList.remove('dragging'); }));
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('dragging');
+    if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+  });
+  document.getElementById('file-input').addEventListener('change', function() {
+    if (this.files.length) { handleFiles(this.files); this.value = ''; }
+  });
+
+  // ─── LOAD FILES FROM UPLOADCARE ───
+  async function loadFiles() {
+    showToast('Cargando archivos...');
+    try {
+      const res = await fetch(`${UC_API}/files/?limit=100&ordering=-datetime_uploaded&stored=true`, {
+        headers: {
+          'Authorization': `Uploadcare.Simple ${UC_PUBLIC}:${UC_SECRET}`,
+          'Accept': 'application/vnd.uploadcare-v0.7+json'
+        }
+      });
+      const data = await res.json();
+      files = (data.results || []).map(f => ({
+        id: f.uuid,
+        name: f.original_filename,
+        type: f.mime_type || guessMime(f.original_filename),
+        size: f.size,
+        uploadedAt: new Date(f.datetime_uploaded).getTime(),
+        url: `https://ucarecdn.com/${f.uuid}/${f.original_filename}`
+      }));
+    } catch(err) {
+      showToast('Error al cargar archivos', 'error');
+    }
+    updateBadges(); updateRecent(); updateStorageBar(); renderFiles();
+  }
+
+  function guessMime(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    const map = { jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp', svg:'image/svg+xml', mp4:'video/mp4', webm:'video/webm', mov:'video/quicktime', mp3:'audio/mpeg', wav:'audio/wav', ogg:'audio/ogg', pdf:'application/pdf' };
+    return map[ext] || 'application/octet-stream';
+  }
+
+  // ─── SHARE PAGE ───
+  function checkShareMode() {
+    const params = new URLSearchParams(window.location.search);
+    const shareId = params.get('share');
+    if (!shareId) return false;
+
+    const name = decodeURIComponent(params.get('name') || 'archivo');
+    const size = parseInt(params.get('size') || '0');
+    const type = decodeURIComponent(params.get('type') || '');
+    const fileUrl = `https://ucarecdn.com/${shareId}/${encodeURIComponent(name)}`;
+
+    // show share page
+    const pg = document.getElementById('share-page');
+    pg.classList.remove('hidden');
+    pg.style.display = 'flex';
+
+    document.getElementById('sp-name').textContent = name;
+    document.getElementById('sp-meta').textContent = formatSize(size) + (type ? ' · ' + type : '');
+    document.getElementById('sp-download-btn').href = fileUrl;
+
+    const preview = document.getElementById('sp-preview');
+    const icon = document.getElementById('sp-icon');
+
+    if (type.startsWith('image/')) {
+      preview.innerHTML = `<img src="${fileUrl}" style="max-width:100%;max-height:340px;border-radius:10px;object-fit:contain;background:#000;">`;
+      icon.style.display = 'none';
+    } else if (type.startsWith('video/')) {
+      preview.innerHTML = `<video src="${fileUrl}" controls style="width:100%;max-height:300px;border-radius:10px;background:#000;"></video>`;
+      icon.style.display = 'none';
+    } else if (type.startsWith('audio/')) {
+      preview.innerHTML = `
+        <div style="background:linear-gradient(135deg,#1a1a1a,#222);border-radius:10px;padding:28px 20px;margin-bottom:4px;">
+          <div style="display:flex;justify-content:center;margin-bottom:16px;color:var(--text-muted)">${ic('i-music',48,'var(--text-muted)','1.2')}</div>
+          <audio src="${fileUrl}" controls style="width:100%;"></audio>
+        </div>`;
+      icon.style.display = 'none';
+    } else {
+      preview.style.display = 'none';
+      icon.style.display = 'flex';
+      icon.innerHTML = ic(getIconId(type, name), 64, 'var(--text-muted)', '1.2');
+    }
+
+    return true;
+  }
+
+  // ─── INIT ───
+  if (!checkShareMode()) {
+    loadFiles();
+  }
+</script>
+</body>
+</html>
